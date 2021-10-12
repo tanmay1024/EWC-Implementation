@@ -82,11 +82,12 @@ def normal_train(model: nn.Module, optimizer: torch.optim, data_loader: torch.ut
 
 
 def ewc_train(model: nn.Module, optimizer: torch.optim, data_loader: torch.utils.data.DataLoader,
-              ewc: EWC, importance: float):
+              ewc: EWC, importance: float, task: int):
     model.train()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_loss = 0
     for index, (images, target) in enumerate(data_loader):
+        target = target - (2*task)
         images = images.view(-1, 28 * 28)
         images = images.to(device)
         target = target.to(device)
@@ -100,31 +101,20 @@ def ewc_train(model: nn.Module, optimizer: torch.optim, data_loader: torch.utils
     print("Loss: ", (epoch_loss / len(data_loader)))
     return epoch_loss / len(data_loader)
 
-# Original evaluation method in the github repository(Not Used).
 
-
-def test(model: nn.Module, data_loader: torch.utils.data.DataLoader):
-    model.eval()
-    correct = 0
-    for index, (images, target) in enumerate(data_loader):
-        images = images.view(-1, 28*28)
-        images, target = variable(images), variable(target)
-        output = model(images)
-        correct += (F.softmax(output, dim=1).max(dim=1)[1] == target).data.sum()
-    # print("Num of Correctly identified:", correct)
-    # print("Dataset Length:", len(data_loader.dataset))
-    return correct / len(data_loader.dataset)
-
-
-def evaluation(model: nn.Module, data_loader, num_sessions, task):
+def evaluation(model: nn.Module, data_loader, num_task, task, learning='class_learning'):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # each_acc = torch.zeros([num_sessions, 10])
-    each_acc = np.zeros((num_sessions, 10))
-    div_acc = np.zeros((1, 10))
-    # div_acc = div_acc.astype(np.float)
-    # class_size = torch.zeros([10])
-    # print("main.evaluation()  evaluation for this session")
+    if learning == 'task_learning':
+        len_label = 2
+    else:
+        len_label = 10
+    label_num = np.zeros((num_task, len_label))
+    each_acc = np.zeros((num_task, len_label))
+    div_acc = np.zeros((1, len_label))
+
     for index, (images, labels) in enumerate(data_loader):
+        if learning == 'task_learning':
+            labels = labels - (2 * task)
         images = images.view(-1, 28 * 28)
         images = images.to(device)
         x = model(images)
@@ -132,16 +122,15 @@ def evaluation(model: nn.Module, data_loader, num_sessions, task):
         # print("Output Labels: ", actualLabels[:20])
         # print("Actual Labels: ", labels[:20])
         labels = labels.to(device)
-        for j in range(10):
+        for j in range(len_label):
             correct = 0
             for i in range(len(actualLabels)):
                 if actualLabels[i] == labels[i] & labels[i] == j:
                     correct += 1
-            div_acc[0][j] = correct
+                if labels[i] == j:
+                    label_num[task][j] +=1
+            div_acc[0][j] = (correct/label_num[task][j])*100
         each_acc[task] = div_acc
-        # for c in range(10):
-        #    div_acc[0][c] = ((actualLabels == labels) * (labels == c)).sum() / (labels == c).sum()
-        # each_acc[task] = div_acc
     return each_acc[task]
 
 
