@@ -1,5 +1,5 @@
 # EWC-Implementation
-Implementation of EWC algorithm proposed in "Overcoming Catastrophic Forgetting in Neural Networks" by Kirkpatrick et al.<br/>
+PyTorch Implementation of EWC algorithm proposed in "Overcoming Catastrophic Forgetting in Neural Networks" by Kirkpatrick et al.<br/>
 main.py can be used for Class Incremental Learning, main_task.py can be used for Task Incremental Learning.<br/>
 Python Script to Implement: python3.8 main.py [Type of Learning] [# of epochs] [learning rate] [batch size] [sample size] [hidden size] [# of tasks] [importance]<br/>
 Here:<br/>
