@@ -5,6 +5,7 @@ Python Script to Implement: python3.8 main.py [Type of Learning] [# of epochs] [
 Here:<br/>
 Type of Learning = 'task_learning' or 'class_learning'<br/>
 Default values of the rest hyperparameters:<br/>
+No. of Epochs = 100<br/>
 learning rate = 0.001<br/>
 batch size = 100<br/>
 sample size = 128<br/>
